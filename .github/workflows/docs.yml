@@ -38,7 +38,7 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
 
       - name: Install quartodoc
-        run: uv pip install --system quartodoc
+        run: uv pip install --system quartodoc jupyter nbformat
 
       - name: Build documentation
         run: |
