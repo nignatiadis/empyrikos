@@ -11,7 +11,7 @@ pip install git+https://github.com/nignatiadis/empyrikos.git
 ## Requirements
 
 - Python 3.10+
-- Julia 1.10+ (will be automatically installed via PyJulia if not present)
+- Julia 1.10+ (will be automatically installed via JuliaCall if not present)
 
 ## Quick Start
 
