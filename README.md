@@ -47,12 +47,6 @@ print(f"Number of rejections: {result.n_rejected}")
 print(f"Adjusted p-values: {result.adj_pvalues[:5]}...")  # first 5
 ```
 
-## Features
-
-- **Empirical Partially Bayes t-test**: Advanced multiple testing with empirical Bayes shrinkage
-- **Easy-to-use Python interface**: Pythonic API wrapping powerful Julia implementations
-- **Automatic Julia integration**: Seamless Julia backend via PyJulia
-
 ### Additional Methods on Results
 
 After running `epb_ttest()`, the returned `EPBTTestResult` object provides additional methods:
