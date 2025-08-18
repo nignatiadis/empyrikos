@@ -53,6 +53,45 @@ print(f"Adjusted p-values: {result.adj_pvalues[:5]}...")  # first 5
 - **Easy-to-use Python interface**: Pythonic API wrapping powerful Julia implementations
 - **Automatic Julia integration**: Seamless Julia backend via PyJulia
 
+### Additional Methods on Results
+
+After running `epb_ttest()`, the returned `EPBTTestResult` object provides additional methods:
+
+#### `pvalue_function(beta_hat, se_hat_squared, df)`
+
+Compute empirical partially Bayes p-values for new data using the fitted prior from the original analysis.
+
+```python
+# Using fitted result to compute p-values for new data
+new_pval = result.pvalue_function(beta_hat=1.5, se_hat_squared=0.25, df=10)
+print(f"P-value: {new_pval}")
+
+# Multiple new observations
+new_pvals = result.pvalue_function(
+    beta_hat=[1.5, -0.8, 2.1], 
+    se_hat_squared=[0.25, 0.30, 0.18], 
+    df=[10, 15, 12]
+)
+print(f"P-values: {new_pvals}")
+```
+
+#### `se_hat_squared_pdf(se_hat_squared, df)`
+
+Compute the marginal probability density function of the variance estimates using the fitted prior.
+
+```python
+# Compute PDF at a single point
+pdf_val = result.se_hat_squared_pdf(se_hat_squared=0.25, df=10)
+print(f"PDF: {pdf_val}")
+
+# Compute PDF at multiple points
+pdf_vals = result.se_hat_squared_pdf(
+    se_hat_squared=[0.25, 0.30, 0.18], 
+    df=[10, 15, 12]
+)
+print(f"PDF values: {pdf_vals}")
+```
+
 ## Documentation
 
 For detailed documentation and examples, see [the documentation](docs/).
