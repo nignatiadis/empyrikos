@@ -1,0 +1,37 @@
+project:
+  type: website
+  title: "Empyrikos Python Package"
+  
+website:
+  title: "Empyrikos"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: reference/
+        text: Reference
+      - href: examples/
+        text: Examples
+
+quartodoc:
+  style: pkgdown
+  dir: reference
+  package: empyrikos
+  renderer:
+    style: _renderer.py
+  sections:
+    - title: "Main Functions"
+      desc: "Core empirical Bayes testing functions"
+      contents:
+        - name: epb_ttest
+          signature_name: 'short'
+        - name: EPBTTestResult
+          signature_name: 'short'
+        - name: EPBTTestResult.pvalue_function
+          signature_name: 'short'
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true

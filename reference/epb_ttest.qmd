@@ -1,0 +1,202 @@
+# epb_ttest { #empyrikos.epb_ttest }
+
+`epb_ttest`
+
+Empirical Partially Bayes t-test implementation.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [EPBTTestResult](#empyrikos.epb_ttest.EPBTTestResult) | Results of empirical partially Bayes t-test. |
+
+### EPBTTestResult { #empyrikos.epb_ttest.EPBTTestResult }
+
+```python
+epb_ttest.EPBTTestResult()
+```
+
+Results of empirical partially Bayes t-test.
+
+This object contains all results from the empirical partially Bayes testing procedure:
+
+* **n_rejected**: Number of hypotheses rejected at the specified alpha level
+* **pvalues**: Empirical partially Bayes p-values for each test  
+* **adj_pvalues**: Multiple testing corrected p-values (e.g., FDR-adjusted)
+* **reject**: Boolean array indicating which hypotheses were rejected
+* **threshold**: P-value threshold used for rejection (largest rejected p-value) 
+* **prior_fitted**: Fitted prior distribution object from Julia
+
+#### Methods
+
+##### pvalue_function
+
+```python
+result.pvalue_function(beta_hat, se_hat_squared, df)
+```
+
+Compute empirical partially Bayes p-values for new data using the fitted prior.
+
+Uses the fitted prior distribution from the original analysis to compute
+empirical partially Bayes p-values for new effect size estimates, variance estimates, and degrees of freedom.
+
+**Parameters:**
+
+| Name | Type | Description | Default |
+|------|------|-------------|---------|
+| beta_hat | array-like or float | Effect size estimates (e.g., regression coefficients, mean differences). | _required_ |
+| se_hat_squared | array-like or float | Variance estimates corresponding to beta_hat (i.e., independent estimates of $\mathrm{Var}(\hat{\beta}_i)$). | _required_ |
+| df | array-like or float | Degrees of freedom for each test. Can be a single value or an array. | _required_ |
+
+**Returns:**
+
+| Type | Description |
+|------|-------------|
+| np.ndarray or float | Empirical partially Bayes p-values for the input data. Returns a scalar if all inputs are scalars, otherwise returns an array. |
+
+**Examples:**
+
+```python
+>>> # Using fitted result to compute p-values for new data
+>>> new_pval = result.pvalue_function(beta_hat=1.5, se_hat_squared=0.25, df=10)
+>>> print(f"P-value: {new_pval}")
+
+>>> # Multiple new observations
+>>> new_pvals = result.pvalue_function(
+...     beta_hat=[1.5, -0.8, 2.1], 
+...     se_hat_squared=[0.25, 0.30, 0.18], 
+...     df=[10, 15, 12]
+... )
+>>> print(f"P-values: {new_pvals}")
+```
+
+##### se_hat_squared_pdf
+
+```python
+result.se_hat_squared_pdf(se_hat_squared, df)
+```
+
+Compute the marginal probability density function of the variance estimates.
+
+Uses the fitted prior distribution from the original analysis to compute
+the marginal PDF of variance estimates at the specified values.
+
+**Parameters:**
+
+| Name | Type | Description | Default |
+|------|------|-------------|---------|
+| se_hat_squared | array-like or float | Variance estimates (i.e., independent estimates of $\mathrm{Var}(\hat{\beta}_i)$). | _required_ |
+| df | array-like or float | Degrees of freedom for each test. Can be a single value or an array. | _required_ |
+
+**Returns:**
+
+| Type | Description |
+|------|-------------|
+| np.ndarray or float | Marginal probability density values at the input points. Returns a scalar if all inputs are scalars, otherwise returns an array. |
+
+**Examples:**
+
+```python
+>>> # Compute PDF at a single point
+>>> pdf_val = result.se_hat_squared_pdf(se_hat_squared=0.25, df=10)
+>>> print(f"PDF: {pdf_val}")
+
+>>> # Compute PDF at multiple points
+>>> pdf_vals = result.se_hat_squared_pdf(
+...     se_hat_squared=[0.25, 0.30, 0.18], 
+...     df=[10, 15, 12]
+... )
+>>> print(f"PDF values: {pdf_vals}")
+```
+
+## Functions
+
+| Name | Description |
+| --- | --- |
+| [epb_ttest](#empyrikos.epb_ttest.epb_ttest) | Empirical partially Bayes t-test for multiple testing. |
+
+### epb_ttest { #empyrikos.epb_ttest.epb_ttest }
+
+```python
+epb_ttest.epb_ttest(
+    beta_hat,
+    se_hat_squared,
+    df,
+    alpha=0.05,
+    multiple_test='benjamini_hochberg',
+    solver='hypatia',
+)
+```
+
+Empirical partially Bayes t-test for multiple testing.
+
+Performs multiple testing with empirical Bayes shrinkage on variance estimates,
+providing improved power compared to standard multiple testing procedures.
+
+#### Mathematical Model {.doc-section .doc-section-mathematical-model}
+
+For each hypothesis i, we observe:
+
+$$
+(\hat{\beta}_i, \hat{s}_i^2) \sim \mathrm{N}(\beta_i, \sigma_i^2) \otimes \frac{\sigma_i^2}{\nu_i} \chi^2_{\nu_i}
+$$
+
+where $\hat{\beta}_i$ (beta_hat) are effect size estimates, $\hat{s}_i^2$ (se_hat_squared) are 
+independent estimates of $\mathrm{Var}(\hat{\beta}_i)$ following a scaled chi-squared distribution, and $\nu_i$ (df) 
+are the degrees of freedom. 
+
+The empirical Bayes procedure estimates a prior distribution for the unknown variances
+and computes moderated test statistics. We test $H_0: \beta_i = 0$ vs $H_1: \beta_i \neq 0$.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name          | Type                | Description                                                                                                   | Default                |
+|---------------|---------------------|---------------------------------------------------------------------------------------------------------------|------------------------|
+| beta_hat      | array - like        | Effect size estimates (e.g., regression coefficients, mean differences).                                      | _required_             |
+| se_hat_squared| array - like        | Variance estimates corresponding to beta_hat (i.e., independent estimates of $\mathrm{Var}(\hat{\beta}_i)$).                   | _required_             |
+| df            | array - like or int | Degrees of freedom for each test. Can be a single value (applied to all) or an array with one value per test. | _required_             |
+| alpha         | float               | Significance level for multiple testing correction.                                                           | `0.05`                 |
+| multiple_test | str                 | Multiple testing procedure. Currently supports "benjamini_hochberg".                                          | `"benjamini_hochberg"` |
+| solver        | str                 | Optimization solver to use. Options: "hypatia", "mosek".                                                      | `"hypatia"`            |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name | Type | Description |
+|------|------|-------------|
+| | EPBTTestResult | Results object with the following attributes: |
+
+**Attributes:**
+
+- **n_rejected** (`int`): Number of hypotheses rejected at the specified alpha level
+- **pvalues** (`numpy.ndarray`): Empirical partially Bayes p-values for each test
+- **adj_pvalues** (`numpy.ndarray`): Multiple testing corrected p-values (e.g., FDR-adjusted)
+- **reject** (`numpy.ndarray`): Boolean array indicating which hypotheses were rejected
+- **threshold** (`float`): P-value threshold used for rejection (largest rejected p-value)
+- **prior_fitted** (`object`): Fitted prior distribution object from Julia
+
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import numpy as np
+>>> import empirikos as eb
+>>> 
+>>> # Generate test data consistent with model assumptions
+>>> np.random.seed(42)
+>>> n_tests = 100
+>>> df = np.full(n_tests, 10)  # degrees of freedom
+>>> 
+>>> # True effect sizes: mix of nulls and non-nulls
+>>> true_beta = np.zeros(n_tests)
+>>> true_beta[50:] = np.random.normal(0, 1, 50)  # 50 nulls, 50 non-nulls
+>>> # True variances from inverse gamma (conjugate prior)
+>>> true_sigma_sq = 1.0 / np.random.gamma(2, 1/0.5, n_tests)
+>>> 
+>>> # Generate observed data according to model
+>>> beta_hat = np.random.normal(true_beta, np.sqrt(true_sigma_sq))
+>>> se_hat_squared = true_sigma_sq * np.random.chisquare(df) / df
+>>>
+>>> # Run empirical partially Bayes t-test
+>>> result = eb.epb_ttest(beta_hat, se_hat_squared, df, alpha=0.05)
+>>> print(f"Rejections: {result.n_rejected}")
+```

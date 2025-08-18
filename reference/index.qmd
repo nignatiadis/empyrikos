@@ -1,0 +1,9 @@
+# Function reference {.doc .doc-index}
+
+## Main Functions
+
+Core empirical Bayes testing functions
+
+| | |
+| --- | --- |
+| [epb_ttest](epb_ttest.qmd#empyrikos.epb_ttest) | Empirical Partially Bayes t-test implementation. |

@@ -1,0 +1,72 @@
+# Empyrikos Python Package
+
+Python interface to [Empirikos.jl](https://github.com/nignatiadis/Empirikos.jl) for empirical Bayes methods.
+
+## Installation
+
+```bash
+pip install git+https://github.com/nignatiadis/empyrikos.git
+```
+
+## Requirements
+
+- Python 3.10+
+- Julia 1.10+ (automatically managed via juliacall)
+
+## Quick Start
+
+```{python}
+#| eval: false
+import empyrikos as eb
+import numpy as np
+
+# Generate test data consistent with model assumptions
+np.random.seed(42)
+n_tests = 100
+df = np.full(n_tests, 10)  # degrees of freedom
+
+# True effect sizes: mix of nulls and non-nulls
+true_beta = np.zeros(n_tests)
+true_beta[50:] = np.random.normal(0, 1, 50)  # 50 nulls, 50 non-nulls
+# True variances from inverse gamma (conjugate prior)
+true_sigma_sq = 1.0 / np.random.gamma(2, 1/0.5, n_tests)
+
+# Generate observed data according to model
+beta_hat = np.random.normal(true_beta, np.sqrt(true_sigma_sq))
+se_hat_squared = true_sigma_sq * np.random.chisquare(df) / df
+
+# Run empirical partially Bayes t-test
+result = eb.epb_ttest(
+    beta_hat=beta_hat,
+    se_hat_squared=se_hat_squared, 
+    df=df,
+    alpha=0.05
+)
+
+print(f"Number of rejections: {result.n_rejected}")
+print(f"First 5 adjusted p-values: {result.adj_pvalues[:5]}")
+```
+
+## Features
+
+- **Empirical Partially Bayes t-test**: Advanced multiple testing with empirical Bayes shrinkage
+- **Seamless Julia integration**: Automatic Julia package management
+- **Multiple solvers**: Support for Hypatia and Mosek optimizers
+- **Pythonic API**: Clean, intuitive interface
+
+## What is Empirical Partial Bayes Testing?
+
+Empirical partially Bayes (EPB) testing is a method for multiple hypothesis testing that improves power by borrowing strength across tests. Unlike traditional methods that treat each test independently, EPB:
+
+1. **Estimates a prior distribution** from the data for variance parameters
+2. **Shrinks individual variance estimates** toward this empirical prior  
+3. **Computes moderated test statistics** using the shrunken variances
+4. **Controls false discovery rate** using standard multiple testing corrections
+
+This approach is particularly effective when you have many tests with potentially heterogeneous variances, such as in genomics or other high-dimensional settings.
+
+## See Also
+
+- [Empirikos.jl Documentation](https://nignatiadis.github.io/Empirikos.jl/)
+- [Reference Documentation](reference/)
+- [Examples](examples/)
