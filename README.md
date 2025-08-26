@@ -88,7 +88,7 @@ print(f"PDF values: {pdf_vals}")
 
 ## Documentation
 
-For detailed documentation and examples, see [the documentation](docs/).
+For detailed documentation and examples, see [the documentation](https://nignatiadis.github.io/empyrikos/).
 
 ## License
 
